@@ -1,0 +1,72 @@
+/* --- Cấu trúc chung --- */
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* --- Biểu đồ chính --- */
+.chart-container {
+    width: 90vw;
+    max-width: 1000px;
+    background: white;
+    padding: 15px;
+    margin: 20px auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(100, 100, 100, 0.1) ;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+/* Hiệu ứng biểu đồ*/
+.chart-container.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- Tooltip (nhẹ hơn) --- */
+.tooltip {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(50, 50, 50, 0.8));
+    color: white;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 12px;
+    white-space: nowrap;
+    display: none;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+/* --- Hiệu ứng cột (bars) --- */
+.bar {
+    opacity: 1;
+    transition: fill 0.2s ease-in-out, transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    will-change: transform, fill;
+}
+
+/* Cột hoặc điểm được chọn */
+.chart-container .bar.selected {
+    transform: scale(1.1);
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    .chart-container {
+        width: 95vw;
+        padding: 10px;
+        margin: 10px auto;
+    }
+
+    .tooltip {
+        font-size: 11px;
+        padding: 5px 8px;
+    }
+}
