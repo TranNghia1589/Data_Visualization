@@ -1,7 +1,5 @@
-// Biến flag để kiểm soát việc gọi checkVisibility
 let scrollTimeout = null;
 
-// Hàm kiểm tra tầm nhìn
 function checkVisibility() {
     document.querySelectorAll(".chart-container:not(.visible)").forEach(chart => {
         let rect = chart.getBoundingClientRect();
@@ -11,7 +9,6 @@ function checkVisibility() {
     });
 }
 
-// Tối ưu sự kiện scroll bằng requestAnimationFrame
 function optimizedScrollHandler() {
     if (!scrollTimeout) {
         scrollTimeout = requestAnimationFrame(() => {
@@ -21,8 +18,6 @@ function optimizedScrollHandler() {
     }
 }
 
-// Gắn sự kiện scroll (tối ưu hơn)
 document.addEventListener("scroll", optimizedScrollHandler);
 
-// Chạy ngay khi trang tải xong
 document.addEventListener("DOMContentLoaded", checkVisibility);

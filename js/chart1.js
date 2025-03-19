@@ -1,30 +1,29 @@
-// Đọc dữ liệu từ tệp CSV
+
 d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
-    // Kiểm tra dữ liệu có hợp lệ không
+    
     if (!Array.isArray(data) || data.length === 0) {
         console.error("Lỗi: CSV rỗng hoặc không hợp lệ!");
         return;
     }
 
-    // Nhóm dữ liệu theo 'Tên mặt hàng' và 'Tên nhóm hàng'
+    
     let groupedData = d3.rollups(
         data,
         v => ({
-            SL: d3.sum(v, d => +d["SL"] || 0), // Tổng số lượng
-            "Thành tiền": d3.sum(v, d => +d["Thành tiền"] || 0) // Tổng doanh số
+            SL: d3.sum(v, d => +d["SL"] || 0), 
+            "Thành tiền": d3.sum(v, d => +d["Thành tiền"] || 0) 
         }),
-        d => `[${d["Mã nhóm hàng"]}] ${d["Tên nhóm hàng"]}`, // Nhóm theo "Mã nhóm hàng + Tên nhóm hàng"
-        d => `[${d["Mã mặt hàng"]}] ${d["Tên mặt hàng"]}` // Nhóm theo "Mã mặt hàng + Tên mặt hàng"
+        d => `[${d["Mã nhóm hàng"]}] ${d["Tên nhóm hàng"]}`, 
+        d => `[${d["Mã mặt hàng"]}] ${d["Tên mặt hàng"]}` 
     );
     
-    // Chuyển đổi dữ liệu sang định dạng phù hợp để vẽ biểu đồ
     let processedData = [];
 
     groupedData.forEach(([nhomHang, matHangData]) => {
         matHangData.forEach(([matHang, values]) => {
             processedData.push({
-                "Nhóm Hàng": nhomHang, // Hiển thị "[Mã nhóm hàng] Tên nhóm hàng"
-                "Mặt Hàng": matHang, // Hiển thị "[Mã mặt hàng] Tên mặt hàng"
+                "Nhóm Hàng": nhomHang, 
+                "Mặt Hàng": matHang, 
                 "SL": values["SL"],
                 "Thành tiền": values["Thành tiền"]
             });
@@ -32,10 +31,8 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
     });
     console.log(processedData);
     
-    // Sắp xếp dữ liệu theo doanh số giảm dần
     processedData.sort((a, b) => b["Thành tiền"] - a["Thành tiền"]);
     
-    // Xác định kích thước của biểu đồ
     let container = d3.select("#chart1").node().getBoundingClientRect();
     let maxWidth = 850, maxHeight = 600;
     let fullWidth = Math.min(container.width || 800, maxWidth) +150 ;
@@ -45,13 +42,11 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
     let width = fullWidth - margin.left - margin.right;
     let height = fullHeight - margin.top - margin.bottom;
 
-    // Tạo SVG chứa biểu đồ
     let svg = d3.select("#chart1")
         .append("svg")
         .attr("width", fullWidth)
         .attr("height", fullHeight);
-    
-    // Thêm tiêu đề biểu đồ
+
     svg.append("text")
         .attr("x", fullWidth / 2)
         .attr("y", 30)
@@ -64,30 +59,22 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
     let chartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Tạo thang đo cho trục X
     let x = d3.scaleLinear()
-        .domain([0, 700000000]) // Đặt giới hạn trục X là 700M
+        .domain([0, 700000000]) 
         .range([0, width]);
 
-    // Tạo thang đo cho trục Y
     let y = d3.scaleBand()
         .domain(processedData.map(d => d["Mặt Hàng"]))
         .range([0, height])
         .padding(0.2);
 
-    // Tạo bảng màu cho nhóm hàng
     let color = d3.scaleOrdinal(d3.schemeCategory10);
 
-    // Lấy danh sách nhóm hàng duy nhất
     let uniqueGroups = [...new Set(processedData.map(d => d["Nhóm Hàng"]))];
 
-    // Thêm nhóm chú giải (legend) bên phải biểu đồ
     let legend = svg.append("g")
-    .attr("transform", `translate(${fullWidth - 150}, ${margin.top})`); // Đẩy xa hơn bên phải
+    .attr("transform", `translate(${fullWidth - 150}, ${margin.top})`); 
 
-
-
-    // Thêm từng mục vào chú giải
     uniqueGroups.forEach((group, i) => {
         let legendRow = legend.append("g")
             .attr("transform", `translate(0, ${i * 20})`);
@@ -105,26 +92,23 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
             .text(group);
     });
 
-    // Vẽ trục X
     chartGroup.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x).tickFormat(d => `${d / 1000000}M`))
         .selectAll("text")
         .style("font-size", "10px")
         .style("fill", "#333");
-    
-    // Thêm đường lưới
+
     chartGroup.append("g")
         .attr("class", "grid")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x)
-            .tickSize(-height) // Đặt kích thước đường lưới
-            .tickFormat("") // Ẩn nhãn trục
+            .tickSize(-height) 
+            .tickFormat("") 
         )
         .selectAll("line")
-        .style("stroke", "#ddd"); // Màu đường lưới
+        .style("stroke", "#ddd"); 
 
-    // Vẽ trục Y
     chartGroup.append("g")
         .call(d3.axisLeft(y))
         .selectAll("text")
@@ -132,7 +116,6 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
         .style("fill", "#333");
     chartGroup.selectAll(".domain").remove();
 
-    // Tạo tooltip hiển thị thông tin khi hover vào cột
     let tooltip1 = d3.select("body").append("div")
         .attr("class", "tooltip1")
         .style("position", "absolute")
@@ -143,7 +126,6 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
         .style("display", "none")
         .style("font-size", "11px");
 
-    // Vẽ các cột trong biểu đồ
     chartGroup.selectAll(".bar")
         .data(processedData)
         .enter()
@@ -168,7 +150,6 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
             tooltip1.style("display", "none");
         });
 
-    // Thêm nhãn giá trị doanh số vào cuối mỗi cột
     chartGroup.selectAll(".label")
         .data(processedData)
         .enter()

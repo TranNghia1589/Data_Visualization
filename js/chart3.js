@@ -1,41 +1,35 @@
-// Đọc dữ liệu từ tệp CSV
 d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
-    // Kiểm tra dữ liệu có hợp lệ không
+
     if (!Array.isArray(data) || data.length === 0) {
         console.error("Lỗi: CSV rỗng hoặc không hợp lệ!");
         return;
     }
 
-    // Chuyển đổi ngày tháng từ cột "Thời gian tạo đơn"
-    let parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S"); // Định dạng có cả giờ
+    let parseDate = d3.timeParse("%Y-%m-%d %H:%M:%S"); 
     data.forEach(d => {
         d["Thời gian tạo đơn"] = parseDate(d["Thời gian tạo đơn"]);
-        d["Tháng"] = `Tháng ${d3.timeFormat("%m")(d["Thời gian tạo đơn"])}`; // Định dạng "Tháng 01", "Tháng 02"...
+        d["Tháng"] = `Tháng ${d3.timeFormat("%m")(d["Thời gian tạo đơn"])}`; 
     });
 
-    // Nhóm dữ liệu theo tháng
     let groupedData = d3.rollups(
         data,
         v => ({
-            SL: d3.sum(v, d => +d["SL"] || 0), // Tổng số lượng
-            "Thành tiền": d3.sum(v, d => +d["Thành tiền"] || 0) // Tổng doanh số
+            SL: d3.sum(v, d => +d["SL"] || 0), 
+            "Thành tiền": d3.sum(v, d => +d["Thành tiền"] || 0) 
         }),
-        d => d["Tháng"] // Nhóm theo "Tháng xx"
+        d => d["Tháng"] 
     );
 
-    // Chuyển đổi dữ liệu sang định dạng phù hợp để vẽ biểu đồ
     let processedData = groupedData.map(([thang, values]) => ({
         "Tháng": thang,
         "SL": values["SL"],
         "Thành tiền": values["Thành tiền"]
     }));
 
-    // Sắp xếp dữ liệu theo thứ tự tháng
     processedData.sort((a, b) => d3.ascending(a["Tháng"], b["Tháng"]));
 
     console.log(processedData);
 
-    // Xác định kích thước của biểu đồ
     let container = d3.select("#chart3").node().getBoundingClientRect();
     let maxWidth = 1000, maxHeight = 600;
     let fullWidth = Math.min(container.width || 800, maxWidth);
@@ -45,13 +39,11 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
     let width = fullWidth - margin.left - margin.right;
     let height = fullHeight - margin.top - margin.bottom;
 
-    // Tạo SVG chứa biểu đồ
     let svg = d3.select("#chart3")
         .append("svg")
         .attr("width", fullWidth)
         .attr("height", fullHeight);
 
-    // Thêm tiêu đề biểu đồ
     svg.append("text")
         .attr("x", fullWidth / 2)
         .attr("y", 30)
@@ -64,44 +56,37 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
     let chartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Tạo thang đo cho trục X (tháng)
     let x = d3.scaleBand()
         .domain(processedData.map(d => d["Tháng"]))
         .range([0, width])
         .padding(0.2);
 
-    // Tạo thang đo cho trục Y (doanh số)
-    let maxValue = d3.max(processedData, d => d["Thành tiền"]); // Lấy giá trị lớn nhất
+    let maxValue = d3.max(processedData, d => d["Thành tiền"]); 
     let y = d3.scaleLinear()
-        .domain([0, Math.ceil(maxValue / 100000000) * 100000000]) // Giới hạn động, bội số của 100M
+        .domain([0, Math.ceil(maxValue / 100000000) * 100000000]) 
         .range([height, 0]);
 
-    // Tạo bảng màu cho Tháng
     let color = d3.scaleOrdinal(d3.schemeTableau10.concat(d3.schemeSet3));
 
-    // Vẽ trục X
     chartGroup.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x));
 
-    // Vẽ trục Y
     chartGroup.append("g")
         .call(d3.axisLeft(y)
             .tickFormat(d => `${d / 1000000}M`));
 
-    // Đường lưới trục Y
     chartGroup.append("g")
         .attr("class", "grid")
         .call(d3.axisLeft(y)
-            .tickSize(-width) // Kéo dài đường lưới
-            .tickFormat("") // Ẩn nhãn trục Y
+            .tickSize(-width) 
+            .tickFormat("")
         )
         .selectAll("line")
-        .style("stroke", "#ddd"); // Màu đường lưới
-    // Xoá đường viền 2 trục
+        .style("stroke", "#ddd");
+
     chartGroup.selectAll(".domain").remove();
 
-    // Tạo tooltip hiển thị thông tin khi hover vào cột
     let tooltip1 = d3.select("body").append("div")
         .attr("class", "tooltip1")
         .style("position", "absolute")
@@ -112,7 +97,6 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
         .style("display", "none")
         .style("font-size", "11px");
 
-    // Vẽ các cột trong biểu đồ
     chartGroup.selectAll(".bar")
         .data(processedData)
         .enter()
@@ -136,7 +120,6 @@ d3.csv("dataset/data_ggsheet-data.csv").then(function(data) {
             tooltip1.style("display", "none");
         });
 
-    // Thêm nhãn giá trị doanh số vào trên mỗi cột
     chartGroup.selectAll(".label")
         .data(processedData)
         .enter()

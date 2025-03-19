@@ -1,4 +1,4 @@
-/* --- Cấu trúc chung --- */
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     background-color: #e0e0e0;
@@ -11,7 +11,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- Biểu đồ chính --- */
+
 .chart-container {
     width: 90vw;
     max-width: 1000px;
@@ -25,13 +25,13 @@ body {
     transition: opacity 0.4s ease-out, transform 0.4s ease-out;
 }
 
-/* Hiệu ứng biểu đồ*/
+
 .chart-container.visible {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* --- Tooltip (nhẹ hơn) --- */
+
 .tooltip {
     position: absolute;
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(50, 50, 50, 0.8));
@@ -45,7 +45,7 @@ body {
     pointer-events: none;
 }
 
-/* --- Hiệu ứng cột (bars) --- */
+
 .bar {
     opacity: 1;
     transition: fill 0.2s ease-in-out, transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
